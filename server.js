@@ -33,32 +33,38 @@ const handle_Find = (res, criteria) => {
         });
     });
 }
-//--------------------not yet finish----------------------
-const finduser=(db, criteria, callback)=>{
-    let cursor = db.collection('account').find(criteria);
-    console.log(`finduser: ${JSON.stringify(criteria)}`);
+//--------------------not yet finish(50%?)----------------------
+const finduser=(db, ac,pw, callback)=>{
+    let cursor = db.collection('account').find({
+       $and:[{acc:ac},{pwd:pw}]
+    });
+    console.log(`finduser:`+ac + pw);
     cursor.toArray((err,docs) => {
         assert.equal(err,null);
-        console.log(`findDocument: ${docs.length}`);
         callback(docs);
     });
 }
-const login_user = (res, criteria) =>{
+const login_user = (req,res,ac,pw) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
         console.log("Connected successfully to server");
         const db = client.db(dbName);
-        finduser(db, criteria, (docs) => {
-            client.close();
-            console.log("Closed DB connection\nlogin success!");
-            res.status(200).render('restaurant',{nBookings: docs.length, bookings: docs});
+        finduser(db, ac,pw, (docs) => {
+            console.log("this is docs: "+docs);
+            if(docs==null){
+                res.redirect('/login');
+            }else{
+                req.session.logined = true;
+                req.session.userac = ac;
+                res.status(200).render('restaurant',{nBookings: docs.length, bookings: docs});
+            }        
         });
     });
 }
-//---------------------not yet finish-------------------------------
-const reguser=(db, criteria, callback)=>{
-    let cursor = db.collection('account').insert(criteria);
+//---------------------register user not yet finish(50%?)-------------------------------
+const reguser=(db,crit,callback)=>{
+    db.collection('account').insert(crit);
     console.log(`register user: ${JSON.stringify(criteria)}`);
     cursor.toArray((err,docs) => {
         assert.equal(err,null);
@@ -66,20 +72,19 @@ const reguser=(db, criteria, callback)=>{
         callback(docs);
     });
 }
-const reg_user = (res, criteria) =>{
+const reg_user = (res,crit) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
         console.log("Connected successfully to server");
         const db = client.db(dbName);
-        reguser(db, criteria, (docs) => {
+        reguser(db,crit, (docs) => {
             client.close();
             console.log("Closed DB connection\nregister success!");
             res.redirect('/login');
         });
     });
 }
-
 //end of functions
 
 app.set('view engine','ejs');
@@ -114,25 +119,29 @@ app.get('/login',(req,res) => {
 });
 // receive user logined action
 app.post('/login', (req,res) => {
-    login_user(res,req.body)
+    login_user(req,res,req.body.ac,req.body.pw)
+    
 })
-// list all the restaurant
+//restaurant detail
 app.get('/restaurant',(req,res) => {
     console.log('going restaurant');
+    res.end('in progress!');
+    //res.status(200).render('restaurant',{});
     
 });
 
 // search function?
 app.get('/search',(req,res) => {
     console.log('going restaurant');
-    res.render('restaurant',{condit:""});
+    res.end('in progress!');
+    //res.render('restaurant',{condit:""});
 });
 
 // logout
 app.get('/logout', function(req,res) {
-    console.log("this is before "+req.session);
+    console.log("logout: this is before "+req.session);
     req.session = null;
-    console.log("this is after "+req.session);
+    console.log("logout: this is after "+req.session);
     res.redirect('/');
 });
 
