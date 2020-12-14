@@ -34,31 +34,22 @@ const handle_Find = (res, criteria) => {
     });
 }
 //--------------------not yet finish(50%?)----------------------
-const finduser=(db, crit, callback)=>{
-    let cursor = db.collection('account').find({crit});
-    console.log(`finduser: `+crit);
-    cursor.toArray((err,docs) => {
-        assert.equal(err,null);
-        callback(docs);
-    });
-}
+
 const login_user = (req,res,crit) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
         console.log("Connected successfully to server");
         const db = client.db(dbName);
-        finduser(db, crit, (docs) => {
-            console.log("this is docs: "+docs);
-            if(docs==null){
+        db.collection('account').findOne(crit,(err,result)=>{
+            if (result==null){
                 console.log('login fail?');
-                res.redirect('/login');
+                res.render('error',{tname:"login failure!",reason:"No such user(wrong password or username?)"})
             }else{
                 req.session.logined = true;
                 req.session.userac = req.body.acc;
-                res.end("none match:(");
-                //res.status(200).render('restaurant',{nBookings: docs.length, bookings: docs});
-            }        
+                res.redirect('/search');
+            }
         });
     });
 }
@@ -114,11 +105,8 @@ app.get('/register',(req,res)=>{
     res.status(200).render('register',{});
 })
 app.post(('/register'),(req,res)=>{
-    console.log(req.body);
     reg_user(res,req.body)
 })
-
-
 //login user
 app.get('/login',(req,res) => {
     res.status(200).render('login',{});
@@ -139,7 +127,7 @@ app.get('/restaurant',(req,res) => {
 app.get('/search',(req,res) => {
     console.log('going restaurant');
     res.end('in progress!');
-    //res.render('restaurant',{condit:""});
+    //res.render('/search',{condit:""});
 });
 
 // logout
