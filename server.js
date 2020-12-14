@@ -3,7 +3,7 @@ const app = express();
 const Mongocilent = require('mongodb').Mongocilent;
 const assert = require('assert');
 const session = require('cookie-session');
-const bodyparser = require('body-parser');
+const bodyParser = require('body-parser');
 const dbName='project';
 const mongourl = 'mongodb+srv://s1253745:ccgss123@cluster0.diyj2.mongodb.net/test?retryWrites=true&w=majority';
 const formidable = require('express-formidable');
@@ -34,30 +34,28 @@ const handle_Find = (res, criteria) => {
     });
 }
 //--------------------not yet finish(50%?)----------------------
-const finduser=(db, ac,pw, callback)=>{
-    let cursor = db.collection('account').find({
-       $and:[{acc:ac},{pwd:pw}]
-    });
-    console.log(`finduser:`+ac + pw);
+const finduser=(db, crit, callback)=>{
+    let cursor = db.collection('account').find({crit});
+    console.log(`finduser: `+crit);
     cursor.toArray((err,docs) => {
         assert.equal(err,null);
         callback(docs);
     });
 }
-const login_user = (req,res,ac,pw) =>{
+const login_user = (req,res,crit) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
         console.log("Connected successfully to server");
         const db = client.db(dbName);
-        finduser(db, ac,pw, (docs) => {
+        finduser(db, crit, (docs) => {
             console.log("this is docs: "+docs);
             if(docs==null){
                 console.log('login fail?');
                 res.redirect('/login');
             }else{
                 req.session.logined = true;
-                req.session.userac = ac;
+                req.session.userac = req.body.acc;
                 res.end("none match:(");
                 //res.status(200).render('restaurant',{nBookings: docs.length, bookings: docs});
             }        
@@ -70,7 +68,7 @@ const reguser=(db,crit,callback)=>{
     console.log(`register user: ${JSON.stringify(criteria)}`);
     cursor.toArray((err,docs) => {
         assert.equal(err,null);
-        console.log(`registerd user: ${docs.length}`);
+        console.log(`registerd user: ${docs}`);
         callback(docs);
     });
 }
@@ -88,9 +86,11 @@ const reg_user = (res,crit) =>{
     });
 }
 //end of functions
-
 app.set('view engine','ejs');
 
+// support parsing of application/json type post data
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 //start login session
 app.use(session({
     name: 'loginsession',
@@ -120,9 +120,8 @@ app.get('/login',(req,res) => {
     res.status(200).render('login',{});
 });
 // receive user logined action
-app.post('/login', (req,res) => {
-    login_user(req,res,req.body.ac,req.body.pw)
-    
+app.post('/login', (req,res) => {+
+    login_user(req,res,req.body)  
 })
 //restaurant detail
 app.get('/restaurant',(req,res) => {
