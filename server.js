@@ -29,12 +29,11 @@ const handle_Find = (res, criteria) => {
         findDocument(db,"restaurant",criteria, (docs) => {
             client.close();
             console.log("Closed DB connection");
-            res.status(200).render('restaurant',{numofr: docs.length, r: docs});
+            res.status(200).render('/search',{crit:criteria,numofr: docs.length, c: docs,usr:req.session.userac});
         });
     });
 }
-//--------------------not yet finish(50%?)----------------------
-
+//--------------------not yet finish(90%?)----------------------
 const login_user = (req,res,crit) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
@@ -43,17 +42,20 @@ const login_user = (req,res,crit) =>{
         const db = client.db(dbName);
         db.collection('account').findOne(crit,(err,result)=>{
             if (result==null){
+                client.close();
                 console.log('login fail?');
                 res.render('error',{tname:"login failure!",reason:"No such user(wrong password or username?)"})
             }else{
+                client.close();
                 req.session.logined = true;
                 req.session.userac = req.body.acc;
                 res.redirect('/search');
+                //search part not sure
             }
         });
     });
 }
-//---------------------register user not yet finish(50%?)-------------------------------
+//---------------------register (100%)-------------------------------
 const reg_user = (res,crit) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
@@ -120,14 +122,12 @@ app.get('/restaurant',(req,res) => {
     console.log('going restaurant');
     res.end('in progress!');
     //res.status(200).render('restaurant',{});
-    
 });
 
 // search function?
 app.get('/search',(req,res) => {
-    console.log('going restaurant');
-    res.end('in progress!');
-    //res.render('/search',{condit:""});
+    console.log('going search');
+    handle_Find();
 });
 
 // logout
@@ -137,7 +137,14 @@ app.get('/logout', function(req,res) {
     console.log("logout: this is after "+req.session);
     res.redirect('/');
 });
-
+//create new restaurant
+app.get('/create',(req,res) => {
+    res.status(200).render('create',{usr:req.session.userac});
+});
+// receive restaurant info
+app.post('/create', (req,res) => {
+      
+})
 //Q8 api 
 app.get('/api/restaurant/:para/:crit',(req,res)=>{
     //res.type('json');
