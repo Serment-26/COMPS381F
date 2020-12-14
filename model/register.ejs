@@ -22,10 +22,10 @@
 	<hr>
 	<form action="/login" method="post">
 		Username: <input type="text" name="ac" required><br>
-		Password: <input type="password" name="pw" required><br>
+		Password: <input type="password" name="pw" required onchange='check_pass();'><br>
 		<input type="submit" value="Login" id="submit" disabled>
 	</form>
-	Confirm Password: <input type="password" name="pw2" required><br>
+	Confirm Password: <input type="password" name="pw2" required onchange='check_pass();'><br>
 </body>
 
 </html>
