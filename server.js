@@ -5,7 +5,7 @@ const assert = require('assert');
 const session = require('cookie-session');
 const bodyparser = require('body-parser');
 const dbName='project';
-const mongourl = '';
+const mongourl = 'mongodb+srv://s1253745:ccgss123@cluster0.diyj2.mongodb.net/test?retryWrites=true&w=majority';
 const formidable = require('express-formidable');
 const secretkey="this is just too new for me to learn";
 
@@ -53,11 +53,13 @@ const login_user = (req,res,ac,pw) =>{
         finduser(db, ac,pw, (docs) => {
             console.log("this is docs: "+docs);
             if(docs==null){
+                console.log('login fail?');
                 res.redirect('/login');
             }else{
                 req.session.logined = true;
                 req.session.userac = ac;
-                res.status(200).render('restaurant',{nBookings: docs.length, bookings: docs});
+                res.end("none match:(");
+                //res.status(200).render('restaurant',{nBookings: docs.length, bookings: docs});
             }        
         });
     });

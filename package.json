@@ -5,8 +5,10 @@
   "main": "server.js",
   "dependencies": {
     "cookie-session": "^1.4.0",
-    "express": "^4.17.1",
-    "mongodb": "^3.6.3"
+    "express-formidable": "^1.2.0",
+    "mongodb": "^3.6.3",
+    "express": "*",
+    "ejs": "*"
   },
   "devDependencies": {},
   "scripts": {
