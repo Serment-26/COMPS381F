@@ -1,10 +1,12 @@
 <html>
-	<head>Register Page</head>
+	<head>
+		<title>Register Page</title>
+	</head>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script>
 	function check_pass() {
-    if (document.getElementByName('pw').value ==
-            document.getElementByName('pw2').value) {
+    if (document.getElementById('pw').value ==
+            document.getElementById('pw2').value) {
         document.getElementById('submit').disabled = false;
     } else {
         document.getElementById('submit').disabled = true;
@@ -12,20 +14,13 @@
 }
 </script>
 	<body>
-	<h6>Register</h6>
-
-	<p>Use the following IDs and Password:</p>
-	<ol>
-		<li>guest (password: guest)</li>
-		<li>developer (password: developer)</li>
-	</ol>
-	<hr>
+	<h1>Register</h1>
 	<form action="/login" method="post">
-		Username: <input type="text" name="ac" required><br>
-		Password: <input type="password" name="pw" required onchange='check_pass();'><br>
+		Username: <input type="text" name="ac" id='ac' required><br>
+		Password: <input type="password" name="pw" id='pw'required onchange='check_pass();'><br>
 		<input type="submit" value="Login" id="submit" disabled>
 	</form>
-	Confirm Password: <input type="password" name="pw2" required onchange='check_pass();'><br>
+	Confirm Password: <input type="password" name="pw2" id='pw2' required onchange='check_pass();'><br>
 </body>
 
 </html>
