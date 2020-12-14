@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const Mongocilent = require('mongodb').Mongocilent;
+const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
 const session = require('cookie-session');
 const bodyParser = require('body-parser');
@@ -11,9 +11,9 @@ const secretkey="this is just too new for me to learn";
 
 // all the function related to database
 //not yetfinish
-const findDocument = (db, criteria, callback) => {
-    let cursor = db.collection('bookings').find(criteria);
-    console.log(`findDocument: ${JSON.stringify(criteria)}`);
+const findDocument = (db,collection,crit, callback) => {
+    let cursor = db.collection(collection).find(crit);
+    console.log(`findDocument: ${JSON.stringify(crit)}`);
     cursor.toArray((err,docs) => {
         assert.equal(err,null);
         console.log(`findDocument: ${docs.length}`);
@@ -26,10 +26,10 @@ const handle_Find = (res, criteria) => {
         assert.equal(null, err);
         console.log("Connected successfully to server");
         const db = client.db(dbName);
-        findDocument(db, criteria, (docs) => {
+        findDocument(db,"restaurant",criteria, (docs) => {
             client.close();
             console.log("Closed DB connection");
-            res.status(200).render('restaurant',{nBookings: docs.length, bookings: docs});
+            res.status(200).render('restaurant',{numofr: docs.length, r: docs});
         });
     });
 }
@@ -63,26 +63,29 @@ const login_user = (req,res,crit) =>{
     });
 }
 //---------------------register user not yet finish(50%?)-------------------------------
-const reguser=(db,crit,callback)=>{
-    db.collection('account').insert(crit);
-    console.log(`register user: ${JSON.stringify(criteria)}`);
-    cursor.toArray((err,docs) => {
-        assert.equal(err,null);
-        console.log(`registerd user: ${docs}`);
-        callback(docs);
-    });
-}
 const reg_user = (res,crit) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
         console.log("Connected successfully to server");
         const db = client.db(dbName);
-        reguser(db,crit, (docs) => {
-            client.close();
-            console.log("Closed DB connection\nregister success!");
-            res.redirect('/login');
-        });
+        db.collection('account').findOne(crit,(err,result)=>{
+            if (result==null){
+                db.collection('account').insertOne(crit,(err,result)=>{
+                    if (err) {console.log(err);}
+                    else{
+                        client.close();
+                        console.log("Closed DB connection\nregister success!");
+                        res.render('error',{tname:"register success!",reason:"you have register a new ac successfully!"})
+                    }            
+                });               
+            }else{
+                client.close();
+                onsole.log("Closed DB connection");
+                res.render('error',{tname:"register fail!",reason:"you have fail to register a new ac!(properly have the same account)"})
+            }
+        })
+          
     });
 }
 //end of functions
@@ -111,6 +114,7 @@ app.get('/register',(req,res)=>{
     res.status(200).render('register',{});
 })
 app.post(('/register'),(req,res)=>{
+    console.log(req.body);
     reg_user(res,req.body)
 })
 
