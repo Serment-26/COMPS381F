@@ -10,27 +10,23 @@ const formidable = require('express-formidable');
 const secretkey="this is just too new for me to learn";
 
 // all the function related to database
-//not yetfinish
-const findDocument = (db,collection,crit, callback) => {
-    let cursor = db.collection(collection).find(crit);
-    console.log(`findDocument: ${JSON.stringify(crit)}`);
-    cursor.toArray((err,docs) => {
-        assert.equal(err,null);
-        console.log(`findDocument: ${docs.length}`);
-        callback(docs);
-    });
-}
-const handle_Find = (res, criteria) => {
+//not yet finish (maybe finished?)
+const handle_Find = (res,crit,ac) => {
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
-        console.log("Connected successfully to server");
+        console.log("Connected successfully to server(handle_find)");
         const db = client.db(dbName);
-        findDocument(db,"restaurant",criteria, (docs) => {
-            client.close();
-            console.log("Closed DB connection");
-            res.status(200).render('/search',{crit:criteria,numofr: docs.length, c: docs,usr:req.session.userac});
-        });
+        if(crit==null){
+            var cursor = db.collection("restaurant").find();
+        }else{
+            var cursor = db.collection("restaurant").find(crit);
+        }
+        cursor.toArray((err,docs) => {
+            assert.equal(err,null);
+            console.log(`findDocument: ${docs.length}`);
+            res.redirect('/search');
+        });     
     });
 }
 //--------------------not yet finish(90%?)----------------------
@@ -38,13 +34,13 @@ const login_user = (req,res,crit) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
-        console.log("Connected successfully to server");
+        console.log("Connected successfully to server(login_user)");
         const db = client.db(dbName);
         db.collection('account').findOne(crit,(err,result)=>{
             if (result==null){
                 client.close();
                 console.log('login fail?');
-                res.render('error',{tname:"login failure!",reason:"No such user(wrong password or username?)"})
+                res.render('info',{tname:"login failure!",reason:"No such user(wrong password or username?)"})
             }else{
                 client.close();
                 req.session.logined = true;
@@ -60,7 +56,7 @@ const reg_user = (res,crit) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
-        console.log("Connected successfully to server");
+        console.log("Connected successfully to server(reg_user)");
         const db = client.db(dbName);
         db.collection('account').findOne(crit,(err,result)=>{
             if (result==null){
@@ -69,16 +65,49 @@ const reg_user = (res,crit) =>{
                     else{
                         client.close();
                         console.log("Closed DB connection\nregister success!");
-                        res.render('error',{tname:"register success!",reason:"you have register a new ac successfully!"})
+                        res.render('info',{tname:"register success!",reason:"you have register a new ac successfully!"})
                     }            
                 });               
             }else{
                 client.close();
-                onsole.log("Closed DB connection");
-                res.render('error',{tname:"register fail!",reason:"you have fail to register a new ac!(properly have the same account)"})
+                console.log("Closed DB connection");
+                res.render('info',{tname:"register fail!",reason:"you have fail to register a new ac!(properly have the same account)"})
             }
         })
-          
+         
+    });
+}
+//create restaurant
+const create_restaurant=(req, res, crit, ac)=>{
+    var doc={};
+    doc['owner'] = ac;
+    doc['name'] = req.fields.name;
+    doc['borough'] = req.fields.borough;
+    doc['cuisine'] = req.fields.cuisine;
+    doc['address'] = {
+        'street': req.fields.street,
+        'zipcode': req.fields.zipcode,
+        'building': req.fields.building,
+        'coord': { 'lat': req.fields.lat, 
+                   'lon': req.fields.lon }
+    };
+    if (req.files.filetoupload.size > 0) {
+        fs.readFile(req.files.filetoupload.path, (err, data) => {
+            if(err){console.log(err);}
+            doc['photo'] = new Buffer.from(data).toString('base64');
+        });
+    }
+    const client = new MongoClient(mongourl);
+    client.connect((err)=>{
+        assert.equal(null,err);
+        console.log("Connected successfully to server(Create restarant)");
+        const db = client.db(dbName);
+        db.collection("restaurant").insertOne(crit,(err, results)=>{
+                client.close();
+                if(err){console.log(err);}
+                res.render('info',{tname:"Create success!",reason:"you have create a new restaurant successfully!"})
+            }
+        );
     });
 }
 //end of functions
@@ -87,7 +116,10 @@ app.set('view engine','ejs');
 // support parsing of application/json type post data
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-//start login session
+/*start login session
+    userac:string
+    logined:boolean
+*/
 app.use(session({
     name: 'loginsession',
     keys: secretkey,
@@ -98,7 +130,7 @@ app.get('/',(req,res)=>{
     if(!req.session.logined){
         res.redirect('/login');
     }else{
-        res.redirect('/restaurant')
+        res.redirect('/search')
     }
 })
 
@@ -127,23 +159,21 @@ app.get('/restaurant',(req,res) => {
 // search function?
 app.get('/search',(req,res) => {
     console.log('going search');
-    handle_Find();
+    handle_Find(res,req.query,req.session.userac);
 });
 
 // logout
 app.get('/logout', function(req,res) {
-    console.log("logout: this is before "+req.session);
     req.session = null;
-    console.log("logout: this is after "+req.session);
     res.redirect('/');
 });
 //create new restaurant
 app.get('/create',(req,res) => {
-    res.status(200).render('create',{usr:req.session.userac});
+    res.status(200).render('create',{});
 });
 // receive restaurant info
-app.post('/create', (req,res) => {
-      
+app.post('/create', formidable(), (req,res) => {
+      create_restaurant(req,res.query,req.session.userac);
 })
 //Q8 api 
 app.get('/api/restaurant/:para/:crit',(req,res)=>{
@@ -159,10 +189,11 @@ app.get('/api/restaurant/:para/:crit',(req,res)=>{
             
         break;
         default:
+            res.render('info',{tname:"nothing input?",reason:"you have not input a single thing?"});
             console.log('there is nothing inputed?');
-            res.send('there is nothing inputed?');
         break;
     }
 })
 
 app.listen(process.env.PORT || 8099);
+//res.render('info',{tname:"",reason:""})
