@@ -11,7 +11,7 @@ const secretkey="this is just too new for me to learn";
 
 // all the function related to database
 //not yet finish (maybe finished?)
-const handle_Find = (res,crit,ac) => {
+const handle_Find = (ac,res,crit) => {
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
@@ -24,12 +24,13 @@ const handle_Find = (res,crit,ac) => {
         }
         cursor.toArray((err,docs) => {
             assert.equal(err,null);
+            console.log("this is crit"+crit);
             console.log(`findDocument: ${docs.length}`);
-            res.redirect('/search');
+            res.render('search',{user:ac,numofr:docs.length,crit:crit,c:docs})
         });     
     });
 }
-//--------------------not yet finish(90%?)----------------------
+//--------------------login (99%)----------------------
 const login_user = (req,res,crit) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
@@ -38,15 +39,14 @@ const login_user = (req,res,crit) =>{
         const db = client.db(dbName);
         db.collection('account').findOne(crit,(err,result)=>{
             if (result==null){
-                client.close();
-                console.log('login fail?');
+                client.close();           
                 res.render('info',{tname:"login failure!",reason:"No such user(wrong password or username?)"})
             }else{
                 client.close();
                 req.session.logined = true;
                 req.session.userac = req.body.acc;
-                res.redirect('/search');
-                //search part not sure
+                handle_Find(req.session.userac,res,"");
+                //maybe fixed? but url is not same as demo one
             }
         });
     });
@@ -133,7 +133,6 @@ app.get('/',(req,res)=>{
         res.redirect('/search')
     }
 })
-
 // register new user on the system
 app.get('/register',(req,res)=>{
     res.status(200).render('register',{});
@@ -149,19 +148,12 @@ app.get('/login',(req,res) => {
 app.post('/login', (req,res) => {+
     login_user(req,res,req.body)  
 })
-//restaurant detail
-app.get('/restaurant',(req,res) => {
-    console.log('going restaurant');
-    res.end('in progress!');
-    //res.status(200).render('restaurant',{});
-});
-
 // search function?
 app.get('/search',(req,res) => {
     console.log('going search');
-    handle_Find(res,req.query,req.session.userac);
+    handle_Find(req.session.userac,res,req.query);
+    
 });
-
 // logout
 app.get('/logout', function(req,res) {
     req.session = null;
@@ -175,6 +167,12 @@ app.get('/create',(req,res) => {
 app.post('/create', formidable(), (req,res) => {
       create_restaurant(req,res.query,req.session.userac);
 })
+//restaurant detail
+app.get('/restaurant',(req,res) => {
+    console.log('going restaurant');
+    res.end('in progress!');
+    //res.status(200).render('restaurant',{});
+});
 //Q8 api 
 app.get('/api/restaurant/:para/:crit',(req,res)=>{
     //res.type('json');
