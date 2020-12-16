@@ -7,20 +7,20 @@ const bodyParser = require('body-parser');
 const dbName='project';
 const mongourl = 'mongodb+srv://s1253745:ccgss123@cluster0.diyj2.mongodb.net/test?retryWrites=true&w=majority';
 const formidable = require('express-formidable');
-const secretkey="this is just too new for me to learn";
-
+const secretkey1="this is just too new for me to learn";
+const secretkey2="why so many bug";
 app.set('view engine','ejs');
 /*start login session
     username:string
     authenticated:boolean
 */
-app.use(session({
-    name: 'loginSession',
-    keys: secretkey,
-}));
-// support parsing of application/json type post data
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(session({
+    name: 'loginSession',
+    keys: [secretkey1,secretkey2]
+}));
+// support parsing of application/json type post data
 
 // all the function related to database
 //not yet finish (maybe finished?)

@@ -4,12 +4,12 @@
   "description": "homework",
   "main": "server.js",
   "dependencies": {
-    "express": "*",
+    "body-parser": "*",
+    "cookie-session": "^1.4.0",
     "ejs": "*",
-    "cookie-session": "*",
+    "express": "*",
     "express-formidable": "^1.2.0",
-    "mongodb": "^3.6.3",
-    "body-parser": "*"
+    "mongodb": "^3.6.3"
   },
   "devDependencies": {},
   "scripts": {
