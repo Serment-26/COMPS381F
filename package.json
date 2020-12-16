@@ -4,11 +4,11 @@
   "description": "homework",
   "main": "server.js",
   "dependencies": {
+    "express": "*",
+    "ejs": "*",
     "cookie-session": "*",
     "express-formidable": "^1.2.0",
     "mongodb": "^3.6.3",
-    "express": "*",
-    "ejs": "*",
     "body-parser": "*"
   },
   "devDependencies": {},

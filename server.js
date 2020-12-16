@@ -9,6 +9,19 @@ const mongourl = 'mongodb+srv://s1253745:ccgss123@cluster0.diyj2.mongodb.net/tes
 const formidable = require('express-formidable');
 const secretkey="this is just too new for me to learn";
 
+app.set('view engine','ejs');
+/*start login session
+    username:string
+    authenticated:boolean
+*/
+app.use(session({
+    name: 'loginSession',
+    keys: secretkey,
+}));
+// support parsing of application/json type post data
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 // all the function related to database
 //not yet finish (maybe finished?)
 const handle_Find = (ac,res,crit) => {
@@ -17,21 +30,21 @@ const handle_Find = (ac,res,crit) => {
         assert.equal(null, err);
         console.log("Connected successfully to server(handle_find)");
         const db = client.db(dbName);
-        if(crit==null){
+        if(crit==null||crit==""){
             var cursor = db.collection("restaurant").find();
         }else{
             var cursor = db.collection("restaurant").find(crit);
         }
         cursor.toArray((err,docs) => {
             assert.equal(err,null);
-            console.log("this is crit"+crit);
+            client.close();
             console.log(`findDocument: ${docs.length}`);
             res.render('search',{user:ac,numofr:docs.length,crit:crit,c:docs})
         });     
     });
 }
 //--------------------login (99%)----------------------
-const login_user = (req,res,crit) =>{
+const login_user = (res,crit,callback) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
@@ -43,9 +56,7 @@ const login_user = (req,res,crit) =>{
                 res.render('info',{tname:"login failure!",reason:"No such user(wrong password or username?)"})
             }else{
                 client.close();
-                req.session.logined = true;
-                req.session.userac = req.body.acc;
-                handle_Find(req.session.userac,res,"");
+                callback();
                 //maybe fixed? but url is not same as demo one
             }
         });
@@ -111,23 +122,10 @@ const create_restaurant=(req, res, crit, ac)=>{
     });
 }
 //end of functions
-app.set('view engine','ejs');
-
-// support parsing of application/json type post data
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-/*start login session
-    userac:string
-    logined:boolean
-*/
-app.use(session({
-    name: 'loginsession',
-    keys: secretkey,
-}));
 
 //default routing
 app.get('/',(req,res)=>{
-    if(!req.session.logined){
+    if(!req.session.authenticated){
         res.redirect('/login');
     }else{
         res.redirect('/search')
@@ -145,14 +143,25 @@ app.get('/login',(req,res) => {
     res.status(200).render('login',{});
 });
 // receive user logined action
-app.post('/login', (req,res) => {+
-    login_user(req,res,req.body)  
-})
+app.post('/login', (req,res) => {
+    login_user(res,req.body,()=>{
+        req.session.authenticated=true;
+        req.session.username=req.body.acc;
+        console.log("inside: "+req.session.username);
+    });
+    console.log("outside session: "+req.session);
+    console.log("outside: "+req.session.username);
+    res.redirect('/');  
+});
 // search function?
 app.get('/search',(req,res) => {
     console.log('going search');
-    handle_Find(req.session.userac,res,req.query);
-    
+    console.log("inside search"+req.session.username);
+    if(req.query==""||req.query==null){
+        handle_Find(req.session.username,res,"")
+    }else{
+        handle_Find(req.session.username,res,req.query);
+    }  
 });
 // logout
 app.get('/logout', function(req,res) {
@@ -165,13 +174,20 @@ app.get('/create',(req,res) => {
 });
 // receive restaurant info
 app.post('/create', formidable(), (req,res) => {
-      create_restaurant(req,res.query,req.session.userac);
+    console.log(req.session.username);
+    create_restaurant(req,res,res.query,req.session.username);
 })
 //restaurant detail
 app.get('/restaurant',(req,res) => {
     console.log('going restaurant');
     res.end('in progress!');
     //res.status(200).render('restaurant',{});
+});
+app.get('/update',(req,res) => {
+
+});
+app.post('/update',(req,res) => {
+
 });
 //Q8 api 
 app.get('/api/restaurant/:para/:crit',(req,res)=>{
