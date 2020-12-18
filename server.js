@@ -148,19 +148,18 @@ app.post('/login', (req,res) => {
         req.session.authenticated=true;
         req.session.username=req.body.acc;
         console.log("inside: "+req.session.username);
+        res.redirect('/');  
     });
-    console.log("outside session: "+req.session);
-    console.log("outside: "+req.session.username);
-    res.redirect('/');  
+    
 });
 // search function?
 app.get('/search',(req,res) => {
     console.log('going search');
-    console.log("inside search"+req.session.username);
-    if(req.query==""||req.query==null){
+    var crit=JSON.stringify(req.query);
+    if(crit==""||crit==null){
         handle_Find(req.session.username,res,"")
     }else{
-        handle_Find(req.session.username,res,req.query);
+        handle_Find(req.session.username,res,crit);
     }  
 });
 // logout
