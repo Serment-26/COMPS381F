@@ -39,7 +39,8 @@
 		<p>User:<%= user %>
 		</p>
 		<p>Showing <%= numofr %> documents
-				(criteria: {<%= crit %>})</p>
+				(criteria: <%= crit %>)</p>
+		<p><a href="/logout" style="color:rgb(255, 0, 0);font-size:36px;">click here to logout</p>
 	</div>
 	<div class="container-fluid">
 		<div class="row">
@@ -57,7 +58,7 @@
 				<tbody>
 					<% c.forEach(function(p) { %>
 						<tr>
-							<td><a href=/resturant?id=<%= p.id %>><%= p.name %></a></td>
+							<td><a href=/resturant?id=<%= p._id %>><%= p.name %></a></td>
 						  </tr>
 					<% }); %>
 				</tbody>

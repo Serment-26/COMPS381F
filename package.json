@@ -9,6 +9,8 @@
     "ejs": "*",
     "express": "*",
     "express-formidable": "^1.2.0",
+    "formidable": "^1.2.2",
+    "fs": "0.0.1-security",
     "mongodb": "^3.6.3"
   },
   "devDependencies": {},

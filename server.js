@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const dbName='project';
 const mongourl = 'mongodb+srv://s1253745:ccgss123@cluster0.diyj2.mongodb.net/test?retryWrites=true&w=majority';
 const formidable = require('express-formidable');
+const fs = require('fs');
 const secretkey1="this is just too new for me to learn";
 const secretkey2="why so many bug";
 app.set('view engine','ejs');
@@ -14,6 +15,10 @@ app.set('view engine','ejs');
     username:string
     authenticated:boolean
 */
+const users = new Array(
+	{name: 'demo', password: 'demo'},
+	{name: 'student', password: 'student'}
+);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
@@ -43,7 +48,7 @@ const handle_Find = (ac,res,crit) => {
         });     
     });
 }
-//--------------------login (99%)----------------------
+//-------------------- login (100%)----------------------
 const login_user = (res,crit,callback) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
@@ -53,16 +58,16 @@ const login_user = (res,crit,callback) =>{
         db.collection('account').findOne(crit,(err,result)=>{
             if (result==null){
                 client.close();           
-                res.render('info',{tname:"login failure!",reason:"No such user(wrong password or username?)"})
+                res.render('info',{tname:"login failure!",reason:"No such user(wrong password or username?)"});
             }else{
                 client.close();
                 callback();
-                //maybe fixed? but url is not same as demo one
             }
         });
     });
 }
-//---------------------register (100%)-------------------------------
+
+//---------------------register (100%) maybe discard-------------------------------
 const reg_user = (res,crit) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
@@ -89,7 +94,7 @@ const reg_user = (res,crit) =>{
     });
 }
 //create restaurant
-const create_restaurant=(req, res, crit, ac)=>{
+const create_restaurant=(req, res,ac)=>{
     var doc={};
     doc['owner'] = ac;
     doc['name'] = req.fields.name;
@@ -102,8 +107,11 @@ const create_restaurant=(req, res, crit, ac)=>{
         'coord': { 'lat': req.fields.lat, 
                    'lon': req.fields.lon }
     };
-    if (req.files.filetoupload.size > 0) {
-        fs.readFile(req.files.filetoupload.path, (err, data) => {
+    var filename=req.files.sampleFile;
+    console.log("this is size "+JSON.stringify(req.files.sampleFile));
+    console.log("this is file "+JSON.stringify(req.files));
+    if (filename.size > 0) {
+        fs.readFile(filename.path, (err, data) => {
             if(err){console.log(err);}
             doc['photo'] = new Buffer.from(data).toString('base64');
         });
@@ -113,7 +121,7 @@ const create_restaurant=(req, res, crit, ac)=>{
         assert.equal(null,err);
         console.log("Connected successfully to server(Create restarant)");
         const db = client.db(dbName);
-        db.collection("restaurant").insertOne(crit,(err, results)=>{
+        db.collection("restaurant").insertOne(doc,(err, results)=>{
                 client.close();
                 if(err){console.log(err);}
                 res.render('info',{tname:"Create success!",reason:"you have create a new restaurant successfully!"})
@@ -150,7 +158,17 @@ app.post('/login', (req,res) => {
         console.log("inside: "+req.session.username);
         res.redirect('/');  
     });
-    
+/*  maybe change to this on9 login
+    users.forEach((user) => {
+		if (user.name == req.body.name) {
+			req.session.authenticated = true;        
+			req.session.username = req.body.acc;	 		
+		}else{
+            res.render('info',{tname:"login failure!",reason:"No such user(wrong password or username?)"})
+        }
+	});
+    res.redirect('/');
+*/
 });
 // search function?
 app.get('/search',(req,res) => {
@@ -174,7 +192,7 @@ app.get('/create',(req,res) => {
 // receive restaurant info
 app.post('/create', formidable(), (req,res) => {
     console.log(req.session.username);
-    create_restaurant(req,res,res.query,req.session.username);
+    create_restaurant(req,res,req.session.username);
 })
 //restaurant detail
 app.get('/restaurant',(req,res) => {
@@ -191,6 +209,7 @@ app.post('/update',(req,res) => {
 //Q8 api 
 app.get('/api/restaurant/:para/:crit',(req,res)=>{
     //res.type('json');
+    var crit = req.params.crit;
     switch(req.params.para){
         case "name":
         
