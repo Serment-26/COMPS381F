@@ -129,6 +129,44 @@ const create_restaurant=(req, res,ac)=>{
         );
     });
 }
+//restaurant detail
+const restarant_detail=(req,res)=>{
+    const client = new MongoClient(mongourl);
+    client.connect((err) => {
+        assert.equal(null, err);
+        console.log("Connected successfully to server(restarant_detail)");
+        const db = client.db(dbName);
+        var cursor = db.collection("restaurant").find(req.params);
+        cursor.toArray((err,docs) => {
+            assert.equal(err,null);
+            client.close();
+            res.render('restaurant',{c:docs,user:req.session.username})
+        });    
+    }); 
+}
+//remove restaurant
+const del_restaurant=(req,res)=>{
+    var user=req.session.username;
+    const client = new MongoClient(mongourl);
+    client.connect((err) => {
+        assert.equal(null, err);
+        console.log("Connected successfully to server(restarant_detail)");
+        const db = client.db(dbName);
+        db.collection("restaurant").findOne(req.params,(err,result)=>{
+            if(user==result.owner){
+                db.collection("restaurant").deleteOne(req.params,(err,result)=>{
+                    if (err) {console.log(err);}
+                    client.close();
+                    console.log("delete successfully!");
+                    res.render('info',{tname:"Delete success!",reason:"you have delete a restaurant successfully!"})
+                });
+            }else{
+                client.close();
+                res.render('info',{tname:"You faker!",reason:"Delete unsuccessful!"})
+            }
+        });
+    }); 
+}
 //end of functions
 
 //default routing
@@ -197,14 +235,12 @@ app.post('/create', formidable(), (req,res) => {
 //restaurant detail
 app.get('/restaurant',(req,res) => {
     console.log('going restaurant');
-    res.end('in progress!');
-    //res.status(200).render('restaurant',{});
+    restarant_detail(req,res);
+    //res.end('in progress!');
+    //res.render('restaurant',{c:req.params});
 });
-app.get('/update',(req,res) => {
-
-});
-app.post('/update',(req,res) => {
-
+app.get('/remove',(req,res) => {
+    del_restaurant(req,res);
 });
 //Q8 api 
 app.get('/api/restaurant/:para/:crit',(req,res)=>{
