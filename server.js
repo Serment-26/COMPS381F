@@ -8,6 +8,7 @@ const dbName='project';
 const mongourl = 'mongodb+srv://s1253745:ccgss123@cluster0.diyj2.mongodb.net/test?retryWrites=true&w=majority';
 const formidable = require('express-formidable');
 const fs = require('fs');
+var objID= require('mongodb').ObjectID;
 const secretkey1="this is just too new for me to learn";
 const secretkey2="why so many bug";
 app.set('view engine','ejs');
@@ -130,17 +131,19 @@ const create_restaurant=(req, res,ac)=>{
     });
 }
 //restaurant detail
-const restarant_detail=(req,res)=>{
+const restarant_detail=(ac,res,crit)=>{
+    var restID=objID(crit._id);
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
         console.log("Connected successfully to server(restarant_detail)");
         const db = client.db(dbName);
-        var cursor = db.collection("restaurant").find(req.params);
+        var cursor = db.collection("restaurant").find(restID);
         cursor.toArray((err,docs) => {
             assert.equal(err,null);
             client.close();
-            res.render('restaurant',{c:docs,user:req.session.username})
+            console.log(docs);
+            res.render('restaurant',{c:docs,user:ac})
         });    
     }); 
 }
@@ -150,7 +153,7 @@ const del_restaurant=(req,res)=>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
-        console.log("Connected successfully to server(restarant_detail)");
+        console.log("Connected successfully to server(del_restaurant)");
         const db = client.db(dbName);
         db.collection("restaurant").findOne(req.params,(err,result)=>{
             if(user==result.owner){
@@ -235,9 +238,7 @@ app.post('/create', formidable(), (req,res) => {
 //restaurant detail
 app.get('/restaurant',(req,res) => {
     console.log('going restaurant');
-    restarant_detail(req,res);
-    //res.end('in progress!');
-    //res.render('restaurant',{c:req.params});
+    restarant_detail(req.session.username,res,req.query);
 });
 app.get('/remove',(req,res) => {
     del_restaurant(req,res);

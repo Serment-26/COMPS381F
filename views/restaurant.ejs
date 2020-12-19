@@ -27,7 +27,8 @@
     <script>
     function loadMap ()
     {
-      var myLatLng = {lat:<%=c.address.coord.lat %> , lng:<%=c.address.coord.lpn %> };
+      var myLatLng = {lat:'<%=JSON.stringify(c.address.coord.lat)%>', 
+                      lng:'<%=JSON.stringify(c.address.coord.lon)%>'};
       //var myLatLng = new google.maps.LatLng({lat: , lng: });
       var map = new google.maps.Map(document.getElementById("map"),{
             zoom: 18,
@@ -36,7 +37,7 @@
       var marker = new google.maps.Marker({
          position: myLatLng,
          map: map,
-         title: 'dsadsa'
+         title: '<%=c.name%>'
       });
     }
     </script>
@@ -50,10 +51,10 @@
     <p>
     <label class="w3-label w3-validate">Borough: </label><%=c.borough%></p>
     <label class="w3-label w3-validate">Cuisine: </label><%=c.cuisine%></p>
-    <label class="w3-label w3-validate">Street: </label><%=c.address.%></p>
-    <label class="w3-label w3-validate">Building: </label><%=c.address.%></p>
-    <label class="w3-label w3-validate">Zipcode: </label><%=c.address.%></p>
-    <label class="w3-label w3-validate">GPS: </label>[<%=%>,<%=%>]</p>
+    <label class="w3-label w3-validate">Street: </label><%=c.address.street%></p>
+    <label class="w3-label w3-validate">Building: </label><%=c.address.building%></p>
+    <label class="w3-label w3-validate">Zipcode: </label><%=c.address.zipcode%></p>
+    <label class="w3-label w3-validate">GPS: </label>[<%=c.address.coord.lat%>,<%=c.address.coord.lon%>]</p>
     <label class="w3-label w3-validate">Rating: </label><%=c.grades%></p>
     
     <p>
