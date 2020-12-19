@@ -109,8 +109,6 @@ const create_restaurant=(req, res,ac)=>{
                    'lon': req.fields.lon }
     };
     var filename=req.files.sampleFile;
-    console.log("this is size "+JSON.stringify(req.files.sampleFile));
-    console.log("this is file "+JSON.stringify(req.files));
     if (filename.size > 0) {
         fs.readFile(filename.path, (err, data) => {
             if(err){console.log(err);}
@@ -142,7 +140,6 @@ const restarant_detail=(ac,res,crit)=>{
         cursor.toArray((err,docs) => {
             assert.equal(err,null);
             client.close();
-            console.log(docs);
             res.render('restaurant',{c:docs,user:ac})
         });    
     }); 
@@ -257,7 +254,7 @@ app.get('/api/restaurant/:para/:crit',(req,res)=>{
         case "cuisine":
             
         break;
-        default:
+        default:0
             res.render('info',{tname:"nothing input?",reason:"you have not input a single thing?"});
             console.log('there is nothing inputed?');
         break;

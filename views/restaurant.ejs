@@ -1,4 +1,4 @@
-
+<%c.forEach(function(c) {%>
 <html>
     <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
@@ -27,8 +27,7 @@
     <script>
     function loadMap ()
     {
-      var myLatLng = {lat:'<%=JSON.stringify(c.address.coord.lat)%>', 
-                      lng:'<%=JSON.stringify(c.address.coord.lon)%>'};
+      var myLatLng = {lat: '<%=c.address.coord.lat%>', lng: '<%=c.address.coord.lon%>'};
       //var myLatLng = new google.maps.LatLng({lat: , lng: });
       var map = new google.maps.Map(document.getElementById("map"),{
             zoom: 18,
@@ -46,15 +45,18 @@
     <div class="w3-container w3-teal">
       <h1><%=c.name%></h1>
     </div>
-    
+    <%if(c.photo!=''||c.photo!=null){%>
+      <img src="data: image/jpeg;base64,<%=c.photo%>" class="w3-image w3-border w3-padding" style="width:100%">
+    <%}%>
     <div class="w3-container">
     <p>
+    <label class="w3-label w3-validate">Restaurant name: </label><%=c.name %></p>
     <label class="w3-label w3-validate">Borough: </label><%=c.borough%></p>
     <label class="w3-label w3-validate">Cuisine: </label><%=c.cuisine%></p>
     <label class="w3-label w3-validate">Street: </label><%=c.address.street%></p>
-    <label class="w3-label w3-validate">Building: </label><%=c.address.building%></p>
-    <label class="w3-label w3-validate">Zipcode: </label><%=c.address.zipcode%></p>
-    <label class="w3-label w3-validate">GPS: </label>[<%=c.address.coord.lat%>,<%=c.address.coord.lon%>]</p>
+    <label class="w3-label w3-validate">Building: </label><%=c.address.zipcode%></p>
+    <label class="w3-label w3-validate">Zipcode: </label><%=c.address.building%></p>
+    <label class="w3-label w3-validate">GPS: </label>[,]</p>
     <label class="w3-label w3-validate">Rating: </label><%=c.grades%></p>
     
     <p>
@@ -76,4 +78,4 @@
     </div>
     </body>
     </html>
-    
+    <%});%>
