@@ -36,16 +36,12 @@ const handle_Find = (ac,res,crit) => {
         assert.equal(null, err);
         console.log("Connected successfully to server(handle_find)");
         const db = client.db(dbName);
-        if(crit==null||crit==""){
-            var cursor = db.collection("restaurant").find();
-        }else{
-            var cursor = db.collection("restaurant").find(crit);
-        }
+        console.log(crit);    
+        var cursor = db.collection("restaurant").find(crit);
         cursor.toArray((err,docs) => {
             assert.equal(err,null);
             client.close();
-            console.log(`findDocument: ${docs.length}`);
-            res.render('search',{user:ac,numofr:docs.length,crit:crit,c:docs})
+            res.render('search',{user:ac,numofr:docs.length,crit:JSON.stringify(crit),c:docs})
         });     
     });
 }
@@ -235,6 +231,12 @@ const update_restaurant=(req,res)=>{
         });
     }); 
 }
+//get api data
+const api_restdata=(para,crit,res)=>{
+    var doc={}
+    doc[para]=crit;
+
+}
 //end of functions
 
 //default routing
@@ -279,12 +281,8 @@ app.post('/login', (req,res) => {
 // search function?
 app.get('/search',(req,res) => {
     console.log('going search');
-    var crit=JSON.stringify(req.query);
-    if(crit==""||crit==null){
-        handle_Find(req.session.username,res,"")
-    }else{
-        handle_Find(req.session.username,res,crit);
-    }  
+    handle_Find(req.session.username,res,req.query);
+    
 });
 // logout
 app.get('/logout', function(req,res) {
@@ -317,6 +315,7 @@ app.post('/modify', formidable(), (req,res) => {
 //Q8 api 
 app.get('/api/restaurant/:para/:crit',(req,res)=>{
     //res.type('json');
+    api_restdata();
     switch(req.params.para){
         case "name":
         
@@ -335,4 +334,3 @@ app.get('/api/restaurant/:para/:crit',(req,res)=>{
 })
 
 app.listen(process.env.PORT || 8099);
-//res.render('info',{tname:"",reason:""})
