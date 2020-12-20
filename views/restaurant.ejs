@@ -45,7 +45,7 @@
     <div class="w3-container w3-teal">
       <h1><%=c.name%></h1>
     </div>
-    <%if(c.photo!=''||c.photo!=null){%>
+    <%if(c.photo){%>
       <img src="data: image/jpeg;base64,<%=c.photo%>" class="w3-image w3-border w3-padding" style="width:100%">
     <%}%>
     <div class="w3-container">
@@ -56,7 +56,7 @@
     <label class="w3-label w3-validate">Street: </label><%=c.address.street%></p>
     <label class="w3-label w3-validate">Building: </label><%=c.address.zipcode%></p>
     <label class="w3-label w3-validate">Zipcode: </label><%=c.address.building%></p>
-    <label class="w3-label w3-validate">GPS: </label>[,]</p>
+    <label class="w3-label w3-validate">GPS: </label>[<%=c.address.coord.lat%>,<%=c.address.coord.lon%>]</p>
     <label class="w3-label w3-validate">Rating: </label><%=c.grades%></p>
     
     <p>
@@ -68,7 +68,7 @@
     <a href="/rate?_id=<%=c._id %>&ampname=<%=user %>" style="text-decoration: none">
         <button class="w3-btn w3-section w3-teal w3-ripple">Rate</button>
     </a>
-    <a href="/change?_id=<%=c._id  %>" style="text-decoration: none">
+    <a href="/modify?_id=<%=c._id  %>" style="text-decoration: none">
       <button class="w3-btn w3-section w3-teal w3-ripple">Edit</button>
     </a>
     <a href="/remove?_id=<%=c._id  %>" style="text-decoration: none">

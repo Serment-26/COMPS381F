@@ -145,25 +145,93 @@ const restarant_detail=(ac,res,crit)=>{
     }); 
 }
 //remove restaurant
-const del_restaurant=(req,res)=>{
-    var user=req.session.username;
+const del_restaurant=(crit,res,ac)=>{
+    var restID=objID(crit._id);
+    var doc={};
+    doc['owner']=ac;
+    doc['_id']=restID;
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
         console.log("Connected successfully to server(del_restaurant)");
         const db = client.db(dbName);
-        db.collection("restaurant").findOne(req.params,(err,result)=>{
-            if(user==result.owner){
-                db.collection("restaurant").deleteOne(req.params,(err,result)=>{
+        db.collection("restaurant").findOne(doc,(err,result)=>{
+            console.log("outer "+JSON.stringify(result));
+            if(result==null){
+                client.close();
+                res.render('info',{tname:"You faker!",reason:"Delete unsuccessful!"})
+            }else{
+                db.collection("restaurant").deleteOne(doc,(err,result)=>{
                     if (err) {console.log(err);}
                     client.close();
                     console.log("delete successfully!");
-                    res.render('info',{tname:"Delete success!",reason:"you have delete a restaurant successfully!"})
-                });
-            }else{
+                    res.render('info',{tname:"Delete success!",reason:"you have delete a restaurant successfully!"})        
+                })
+            }              
+        }); 
+    });
+}
+//load data of targeted restaurant
+const load_targetrestaurant=(crit,res,ac)=>{
+    var restID=objID(crit._id);
+    var doc={};
+    doc['owner']=ac;
+    doc['_id']=restID;
+    const client = new MongoClient(mongourl);
+    client.connect((err) => {
+        assert.equal(null, err);
+        console.log("Connected successfully to server(update_restaurant)");
+        const db = client.db(dbName);
+        var cursor = db.collection("restaurant").find(doc);
+        cursor.toArray((err,result)=>{
+            assert.equal(err,null);
+            if(result==null){
                 client.close();
-                res.render('info',{tname:"You faker!",reason:"Delete unsuccessful!"})
+                res.render('info',{tname:"You faker!",reason:"you are not the owner"})
+            }else{
+                if (err) {console.log(err);}
+                client.close();
+                res.render('modify',{c:result});        
             }
+        });     
+    });
+}
+//update restaurant remeber parameter after fixing here
+const update_restaurant=(req,res,ac)=>{
+    var docid={}
+    docid['_id']=objID(req.fields._id);
+    var doc={};
+    doc['owner'] = req.fields.userid;
+    doc['name'] = req.fields.name;
+    doc['borough'] = req.fields.borough;
+    doc['cuisine'] = req.fields.cuisine;
+    doc['address'] = {
+        'street': req.fields.street,
+        'zipcode': req.fields.zipcode,
+        'building': req.fields.building,
+        'coord': { 'lat': req.fields.lat, 
+                   'lon': req.fields.lon }
+    };
+    var filename=req.files.sampleFile;
+    if (filename.size > 0) {
+        fs.readFile(filename.path, (err, data) => {
+            if(err){console.log(err);}
+            doc['photo'] = new Buffer.from(data).toString('base64');
+        });
+    }
+    const client = new MongoClient(mongourl);
+    client.connect((err) => {
+        assert.equal(null, err);
+        console.log("Connected successfully to server(update_restaurant)");
+        const db = client.db(dbName);
+        db.collection("restaurant").updateOne(docid,{
+            $set : doc
+        },(err,result)=>{
+            if(err){throw err}         
+            client.close();
+            console.log(result.result.nModified+" updated document");
+            res.render('info',{tname:"update success!",reason:"you have successfully update a restaurant!"})
+            
         });
     }); 
 }
@@ -229,7 +297,6 @@ app.get('/create',(req,res) => {
 });
 // receive restaurant info
 app.post('/create', formidable(), (req,res) => {
-    console.log(req.session.username);
     create_restaurant(req,res,req.session.username);
 })
 //restaurant detail
@@ -238,12 +305,18 @@ app.get('/restaurant',(req,res) => {
     restarant_detail(req.session.username,res,req.query);
 });
 app.get('/remove',(req,res) => {
-    del_restaurant(req,res);
+    del_restaurant(req.query,res,req.session.username);
 });
+app.get('/modify',(req,res) => {
+    load_targetrestaurant(req.query,res,req.session.username);
+});
+// receive restaurant info
+app.post('/modify', (req,res) => {
+    update_restaurant(req.query,res,req.session.username);
+})
 //Q8 api 
 app.get('/api/restaurant/:para/:crit',(req,res)=>{
     //res.type('json');
-    var crit = req.params.crit;
     switch(req.params.para){
         case "name":
         
