@@ -247,6 +247,9 @@ const api_restdata=(para,crit,res)=>{
         })
     });
 }
+const rate_restaurant=(req,res)=>{
+    
+}
 //end of functions
 
 //default routing
@@ -323,7 +326,7 @@ app.post('/modify', formidable(), (req,res) => {
     update_restaurant(req,res);
 })
 //rate restaurant
-app.
+
 //Q8 api 
 app.get('/api/restaurant/:para/:crit',(req,res)=>{
     //res.type('json');
