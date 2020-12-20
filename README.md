@@ -8,4 +8,5 @@ create restaurant 19/12 05:35am
 see restaurant detail 20/12 0535am   
 modify restaurant detail 20/12 0652pm 
 del restaurant 20/12 0535am  
-api section ? ?  
+api section 20/12 730pm  
+rating restaurant ? ?
