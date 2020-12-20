@@ -234,8 +234,18 @@ const update_restaurant=(req,res)=>{
 //get api data
 const api_restdata=(para,crit,res)=>{
     var doc={}
-    doc[para]=crit;
-
+    if(para=="_id"){
+        doc[para]=objID(crit);
+    }else{doc[para]=crit;}
+    const client = new MongoClient(mongourl);    
+    client.connect((err) => {
+        assert.equal(null, err);
+        const db = client.db(dbName);
+        db.collection("restaurant").findOne(doc,(err,result)=>{
+            client.close();
+            res.json(result);
+        })
+    });
 }
 //end of functions
 
@@ -312,25 +322,12 @@ app.get('/modify',(req,res) => {
 app.post('/modify', formidable(), (req,res) => {
     update_restaurant(req,res);
 })
+//rate restaurant
+app.
 //Q8 api 
 app.get('/api/restaurant/:para/:crit',(req,res)=>{
     //res.type('json');
-    api_restdata();
-    switch(req.params.para){
-        case "name":
-        
-        break;
-        case "borough":
-
-        break;
-        case "cuisine":
-            
-        break;
-        default:0
-            res.render('info',{tname:"nothing input?",reason:"you have not input a single thing?"});
-            console.log('there is nothing inputed?');
-        break;
-    }
+    api_restdata(req.params.para,req.params.crit,res);
 })
 
 app.listen(process.env.PORT || 8099);
