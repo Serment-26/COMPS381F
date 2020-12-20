@@ -197,9 +197,9 @@ const load_targetrestaurant=(crit,res,ac)=>{
     });
 }
 //update restaurant remeber parameter after fixing here
-const update_restaurant=(req,res,ac)=>{
+const update_restaurant=(req,res)=>{
     var docid={}
-    docid['_id']=objID(req.fields._id);
+    docid['_id']=objID(req.fields.restid);
     var doc={};
     doc['owner'] = req.fields.userid;
     doc['name'] = req.fields.name;
@@ -311,8 +311,8 @@ app.get('/modify',(req,res) => {
     load_targetrestaurant(req.query,res,req.session.username);
 });
 // receive restaurant info
-app.post('/modify', (req,res) => {
-    update_restaurant(req.query,res,req.session.username);
+app.post('/modify', formidable(), (req,res) => {
+    update_restaurant(req,res);
 })
 //Q8 api 
 app.get('/api/restaurant/:para/:crit',(req,res)=>{
