@@ -1,4 +1,4 @@
-<%c.forEach(function(c) {%>
+
 <html>
     <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
@@ -57,7 +57,7 @@
     <label class="w3-label w3-validate">Building: </label><%=c.address.zipcode%></p>
     <label class="w3-label w3-validate">Zipcode: </label><%=c.address.building%></p>
     <label class="w3-label w3-validate">GPS: </label>[<%=c.address.coord.lat%>,<%=c.address.coord.lon%>]</p>
-    <label class="w3-label w3-validate">Rating: </label><%=c.grades%></p>
+    <label class="w3-label w3-validate">Rating: </label><%if(c.grades.user){c.grades.user+" "+c.grades.score}%></p>
     
     <p>
     <label class="w3-label w3-validate">Created by: </label><%=c.owner%></p>
@@ -65,7 +65,7 @@
     </div>
     
     <div class="w3-container">
-    <a href="/rate?_id=<%=c._id %>&ampname=<%=user %>" style="text-decoration: none">
+    <a href="/rate?_id=<%=c._id %>" style="text-decoration: none">
         <button class="w3-btn w3-section w3-teal w3-ripple">Rate</button>
     </a>
     <a href="/modify?_id=<%=c._id  %>" style="text-decoration: none">
@@ -78,4 +78,3 @@
     </div>
     </body>
     </html>
-    <%});%>

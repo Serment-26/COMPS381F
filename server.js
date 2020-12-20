@@ -19,17 +19,15 @@ app.set('view engine','ejs');
 const users = new Array(
 	{name: 'demo', password: 'demo'},
 	{name: 'student', password: 'student'}
-);
+);// support parsing of application/json type post data
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
     name: 'loginSession',
     keys: [secretkey1,secretkey2]
 }));
-// support parsing of application/json type post data
 
 // all the function related to database
-//not yet finish (maybe finished?)
 const handle_Find = (ac,res,crit) => {
     const client = new MongoClient(mongourl);
     client.connect((err) => {
@@ -45,7 +43,7 @@ const handle_Find = (ac,res,crit) => {
         });     
     });
 }
-//-------------------- login (100%)----------------------
+//-------------------- login (100%) maybe discard--------------------
 const login_user = (res,crit,callback) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
@@ -132,13 +130,12 @@ const restarant_detail=(ac,res,crit)=>{
         assert.equal(null, err);
         console.log("Connected successfully to server(restarant_detail)");
         const db = client.db(dbName);
-        var cursor = db.collection("restaurant").find(restID);
-        cursor.toArray((err,docs) => {
+        db.collection("restaurant").findOne(restID,(err,docs) => {
             assert.equal(err,null);
             client.close();
-            res.render('restaurant',{c:docs,user:ac})
-        });    
-    }); 
+            res.render('restaurant',{c:docs,user:ac});
+        });          
+    });
 }
 //remove restaurant
 const del_restaurant=(crit,res,ac)=>{
@@ -152,7 +149,6 @@ const del_restaurant=(crit,res,ac)=>{
         console.log("Connected successfully to server(del_restaurant)");
         const db = client.db(dbName);
         db.collection("restaurant").findOne(doc,(err,result)=>{
-            console.log("outer "+JSON.stringify(result));
             if(result==null){
                 client.close();
                 res.render('info',{tname:"You faker!",reason:"Delete unsuccessful!"})
@@ -231,12 +227,31 @@ const update_restaurant=(req,res)=>{
         });
     }); 
 }
+//after rate action
+const rate_restaurant=(req,res,ac)=>{
+    var iddoc={};
+    iddoc['_id']=objID(req.fields.restid);
+    var setdoc={};
+    setdoc['grades']={'user':ac,
+                      'score':req.fields.score};
+    const client = new MongoClient(mongourl);
+    client.connect((err) => {
+        console.log('connect to server successfully (rate restaurant)');
+        const db = client.db(dbName);
+        db.collection("restaurant").updateOne(iddoc,{
+            $push: setdoc
+        },(err,results)=>{
+            client.close();
+            assert.equal(err, null);
+            res.render('info',{tname:"rate success!",reason:`you have rated ${results.result.nModified} restaurant!`});      
+        });
+    });
+}
 //get api data
 const api_restdata=(para,crit,res)=>{
     var doc={}
-    if(para=="_id"){
-        doc[para]=objID(crit);
-    }else{doc[para]=crit;}
+    if(para=="_id"){doc[para]=objID(crit);}
+    else{doc[para]=crit;}
     const client = new MongoClient(mongourl);    
     client.connect((err) => {
         assert.equal(null, err);
@@ -244,11 +259,8 @@ const api_restdata=(para,crit,res)=>{
         db.collection("restaurant").findOne(doc,(err,result)=>{
             client.close();
             res.json(result);
-        })
+        });
     });
-}
-const rate_restaurant=(req,res)=>{
-    
 }
 //end of functions
 
@@ -309,10 +321,9 @@ app.get('/create',(req,res) => {
 // receive restaurant info
 app.post('/create', formidable(), (req,res) => {
     create_restaurant(req,res,req.session.username);
-})
+});
 //restaurant detail
 app.get('/restaurant',(req,res) => {
-    console.log('going restaurant');
     restarant_detail(req.session.username,res,req.query);
 });
 app.get('/remove',(req,res) => {
@@ -324,13 +335,17 @@ app.get('/modify',(req,res) => {
 // receive restaurant info
 app.post('/modify', formidable(), (req,res) => {
     update_restaurant(req,res);
-})
+});
 //rate restaurant
-
+app.post('/rate',formidable(),(req,res)=>{
+    rate_restaurant(req,res,req.session.username);
+});
+app.get('/rate',(req,res) => {
+    res.render('rate',{c:req.query});
+});
 //Q8 api 
 app.get('/api/restaurant/:para/:crit',(req,res)=>{
-    //res.type('json');
     api_restdata(req.params.para,req.params.crit,res);
-})
+});
 
 app.listen(process.env.PORT || 8099);
