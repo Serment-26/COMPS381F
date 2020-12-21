@@ -57,7 +57,11 @@
     <label class="w3-label w3-validate">Building: </label><%=c.address.zipcode%></p>
     <label class="w3-label w3-validate">Zipcode: </label><%=c.address.building%></p>
     <label class="w3-label w3-validate">GPS: </label>[<%=c.address.coord.lat%>,<%=c.address.coord.lon%>]</p>
-    <label class="w3-label w3-validate">Rating: </label><%if(c.grades.user){c.grades.user+" "+c.grades.score}%></p>
+    <label class="w3-label w3-validate">Rating: </label><p>
+    <%if(c.grades){%>
+      <%for(i in c.grades){%>
+    <%=i+". "%><%=c.grades[i].user%> 
+      <%=c.grades[i].score%><p><%}}%></p>
     
     <p>
     <label class="w3-label w3-validate">Created by: </label><%=c.owner%></p>

@@ -43,7 +43,7 @@ const handle_Find = (ac,res,crit) => {
         });     
     });
 }
-//-------------------- login (100%) maybe discard--------------------
+//--------------------this is useless--------------------
 const login_user = (res,crit,callback) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
@@ -61,8 +61,7 @@ const login_user = (res,crit,callback) =>{
         });
     });
 }
-
-//---------------------register (100%) maybe discard-------------------------------
+//---------------------this is useless-------------------------------
 const reg_user = (res,crit) =>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
@@ -84,8 +83,7 @@ const reg_user = (res,crit) =>{
                 console.log("Closed DB connection");
                 res.render('info',{tname:"register fail!",reason:"you have fail to register a new ac!(properly have the same account)"})
             }
-        })
-         
+        })      
     });
 }
 //create restaurant
@@ -222,7 +220,7 @@ const update_restaurant=(req,res)=>{
             if(err){throw err}         
             client.close();
             console.log(result.result.nModified+" updated document");
-            res.render('info',{tname:"update success!",reason:"you have successfully update a restaurant!"})
+            res.render('info',{tname:"update success!",reason:"you have successfully update a restaurant!"});
             
         });
     }); 
@@ -231,6 +229,9 @@ const update_restaurant=(req,res)=>{
 const rate_restaurant=(req,res,ac)=>{
     var iddoc={};
     iddoc['_id']=objID(req.fields.restid);
+    var doc={};
+    doc['_id']=objID(req.fields.restid);
+    doc['grades.user']=ac;
     var setdoc={};
     setdoc['grades']={'user':ac,
                       'score':req.fields.score};
@@ -238,12 +239,20 @@ const rate_restaurant=(req,res,ac)=>{
     client.connect((err) => {
         console.log('connect to server successfully (rate restaurant)');
         const db = client.db(dbName);
-        db.collection("restaurant").updateOne(iddoc,{
-            $push: setdoc
-        },(err,results)=>{
-            client.close();
-            assert.equal(err, null);
-            res.render('info',{tname:"rate success!",reason:`you have rated ${results.result.nModified} restaurant!`});      
+        db.collection("restaurant").findOne(doc,(err,result)=>{
+            //console.log(JSON.stringify(result));
+            if(result==null){
+                db.collection("restaurant").updateOne(iddoc,{
+                    $push: setdoc
+                },(err,results)=>{
+                    client.close();
+                    assert.equal(err, null);
+                    res.render('info',{tname:"rate success!",reason:`you have rated ${results.result.nModified} restaurant!`});      
+                });
+            }else{
+                client.close();
+                res.render('info',{tname:"rate fail!",reason:"you have fail rating!"});
+            }     
         });
     });
 }
@@ -285,23 +294,19 @@ app.get('/login',(req,res) => {
 });
 // receive user logined action
 app.post('/login', (req,res) => {
-    login_user(res,req.body,()=>{
+   /* login_user(res,req.body,()=>{
         req.session.authenticated=true;
         req.session.username=req.body.acc;
-        console.log("inside: "+req.session.username);
         res.redirect('/');  
-    });
-/*  maybe change to this on9 login
-    users.forEach((user) => {
-		if (user.name == req.body.name) {
-			req.session.authenticated = true;        
-			req.session.username = req.body.acc;	 		
-		}else{
-            res.render('info',{tname:"login failure!",reason:"No such user(wrong password or username?)"})
-        }
-	});
-    res.redirect('/');
-*/
+    });*/
+  //maybe change to this stupid login(it happened!)
+  users.forEach((user) => {
+    if (user.name == req.body.acc) {
+        req.session.authenticated = true;        
+        req.session.username = req.body.acc;			
+    }
+});
+res.redirect('/');
 });
 // search function?
 app.get('/search',(req,res) => {
@@ -316,7 +321,7 @@ app.get('/logout', function(req,res) {
 });
 //create new restaurant
 app.get('/create',(req,res) => {
-    res.status(200).render('create',{});
+    res.render('create',{});
 });
 // receive restaurant info
 app.post('/create', formidable(), (req,res) => {
