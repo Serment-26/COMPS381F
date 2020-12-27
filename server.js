@@ -170,12 +170,12 @@ const load_targetrestaurant=(crit,res,ac)=>{
     const client = new MongoClient(mongourl);
     client.connect((err) => {
         assert.equal(null, err);
-        console.log("Connected successfully to server(update_restaurant)");
+        console.log("Connected successfully to server(load_restaurant)");
         const db = client.db(dbName);
         var cursor = db.collection("restaurant").find(doc);
         cursor.toArray((err,result)=>{
             assert.equal(err,null);
-            if(result==null){
+            if(result==null||result==""||result=="[]"){
                 client.close();
                 res.render('info',{tname:"You faker!",reason:"you are not the owner"})
             }else{
